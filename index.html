@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BatteryAI - 智能电池管理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #2d1b69 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景粒子效果 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(0, 255, 157, 0.6);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 0;
+            background: rgba(10, 14, 39, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #00ff9d;
+        }
+
+        .nav-links a:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover:after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: #0a0e27;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.3);
+        }
+
+        /* 主页面容器 */
+        .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Hero 区域 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 30px 50px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffffff, #00ff9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: #0a0e27;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 255, 157, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 13px 28px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00ff9d;
+            transform: translateY(-3px);
+        }
+
+        /* 功能特性区域 */
+        .features {
+            padding: 100px 30px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 60px;
+            background: linear-gradient(45deg, #ffffff, #00ff9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 255, 157, 0.1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #00ff9d;
+        }
+
+        .feature-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* 解决方案区域样式 */
+        .solutions {
+            padding: 100px 30px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .solutions-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 60px;
+        }
+
+        .solution-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 50px rgba(0, 255, 157, 0.15);
+        }
+
+        .solution-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .solution-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #00ff9d;
+        }
+
+        .solution-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .solution-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .solution-features li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .solution-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00ff9d;
+            font-weight: bold;
+        }
+
+        /* 关于我们区域样式 */
+        .about {
+            padding: 100px 30px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 157, 0.1));
+        }
+
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .about-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .about-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .highlight-item {
+            padding: 20px 0;
+            border-left: 3px solid #00ff9d;
+            padding-left: 20px;
+        }
+
+        .highlight-item h4 {
+            color: #00ff9d;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .highlight-item p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .about-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .team-placeholder {
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .team-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        /* 联系我们区域样式 */
+        .contact {
+            padding: 100px 30px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 联系信息区域 */
+        .contact-info-section {
+            margin-top: 80px;
+            margin-bottom: 0;
+        }
+
+        .contact-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .contact-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .contact-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 40px rgba(0, 255, 157, 0.1);
+        }
+
+        .contact-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 157, 0.3));
+        }
+
+        .contact-item h4 {
+            color: #00ff9d;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .contact-item p {
+            opacity: 0.8;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        /* 留言咨询区域 */
+        .contact-form-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 60px;
+            margin-bottom: 0;
+        }
+
+        .contact-form {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 50px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-form h3 {
+            color: #00ff9d;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            opacity: 0.8;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form input,
+        .form textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 18px 20px;
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .form input::placeholder,
+        .form textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form input:focus,
+        .form textarea:focus {
+            outline: none;
+            border-color: #00ff9d;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .form textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .form-submit {
+            width: 100%;
+            margin-top: 30px;
+            padding: 18px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .form-submit:hover::before {
+            left: 100%;
+        }
+
+        .btn-arrow {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .form-submit:hover .btn-arrow {
+            transform: translateX(5px);
+        }
+
+        .form-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 50px rgba(0, 255, 157, 0.4);
+        }
+        .stats {
+            padding: 100px 30px;
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.1), rgba(0, 212, 255, 0.1));
+        }
+
+        .stats-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .stat-item {
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00ff9d, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* 页脚 */
+        .footer {
+            padding: 60px 30px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #00ff9d;
+        }
+
+        .footer-bottom {
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 968px) {
+            .solutions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-info-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .contact-form {
+                padding: 40px 30px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-primary, .btn-secondary {
+                width: 200px;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .solutions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-form {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 动态背景粒子 -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">BatteryAI</div>
+                <ul class="nav-links">
+                    <li><a href="#home">首页</a></li>
+                    <li><a href="#features">功能</a></li>
+                    <li><a href="#solutions">解决方案</a></li>
+                    <li><a href="#about">关于我们</a></li>
+                    <li><a href="#contact">联系我们</a></li>
+                </ul>
+                <a href="#" class="cta-button">免费试用</a>
+            </div>
+        </nav>
+
+        <!-- Hero 区域 -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1>智能电池管理的未来</h1>
+                <p>利用先进的AI技术，为您的电池系统提供智能监控、预测性维护和优化管理解决方案，让每一份能源都发挥最大价值</p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn-primary">立即开始</a>
+                    <a href="#" class="btn-secondary">了解更多</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能特性区域 -->
+        <section class="features" id="features">
+            <div class="features-container">
+                <h2 class="section-title">核心功能</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔋</div>
+                        <h3>智能监控</h3>
+                        <p>实时监控电池状态，精准检测电压、温度、充放电等关键参数，确保系统稳定运行</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>AI预测</h3>
+                        <p>基于机器学习算法，预测电池寿命和性能衰减，提前规划维护策略，避免意外故障</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>能效优化</h3>
+                        <p>智能调配充放电策略，最大化能源利用效率，延长电池使用寿命，降低运营成本</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>数据分析</h3>
+                        <p>深度数据挖掘和可视化分析，为决策提供科学依据，优化整体能源管理策略</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>安全保障</h3>
+                        <p>多重安全防护机制，实时风险评估，确保电池系统安全稳定，保护人员和设备安全</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3>云端管理</h3>
+                        <p>云端一体化管理平台，支持远程监控和控制，随时随地掌握系统运行状态</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据展示区域 -->
+        <section class="stats" id="stats">
+            <div class="stats-container">
+                <h2 class="section-title">我们的成果</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">预测准确率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">30%</div>
+                        <div class="stat-label">能效提升</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">企业客户</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">管理设备</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 解决方案区域 -->
+        <section class="solutions" id="solutions">
+            <div class="solutions-container">
+                <h2 class="section-title">行业解决方案</h2>
+                <div class="solutions-grid">
+                    <div class="solution-card">
+                        <div class="solution-icon">🏭</div>
+                        <h3>工业储能</h3>
+                        <p>为工业园区、制造企业提供大规模储能系统的智能管理，优化用电成本，提高能源利用效率</p>
+                        <ul class="solution-features">
+                            <li>峰谷电价优化</li>
+                            <li>负载均衡管理</li>
+                            <li>应急备电保障</li>
+                        </ul>
+                    </div>
+                    <div class="solution-card">
+                        <div class="solution-icon">🚗</div>
+                        <h3>电动汽车</h3>
+                        <p>为电动汽车充电站和车队管理提供智能充电调度，延长电池寿命，提升运营效率</p>
+                        <ul class="solution-features">
+                            <li>智能充电调度</li>
+                            <li>电池健康监测</li>
+                            <li>成本优化管理</li>
+                        </ul>
+                    </div>
+                    <div class="solution-card">
+                        <div class="solution-icon">🏠</div>
+                        <h3>家庭储能</h3>
+                        <p>为家庭光伏储能系统提供智能化管理，实现自发自用，余电上网，降低电费支出</p>
+                        <ul class="solution-features">
+                            <li>光储协调控制</li>
+                            <li>用电行为分析</li>
+                            <li>收益最大化</li>
+                        </ul>
+                    </div>
+                    <div class="solution-card">
+                        <div class="solution-icon">🌱</div>
+                        <h3>新能源电站</h3>
+                        <p>为风光储一体化电站提供综合能源管理，提高新能源消纳率，保障电网稳定运行</p>
+                        <ul class="solution-features">
+                            <li>功率预测优化</li>
+                            <li>电网调频服务</li>
+                            <li>运维成本控制</li>
+                        </ul>
+                    </div>
+                    <div class="solution-card">
+                        <div class="solution-icon">🏢</div>
+                        <h3>数据中心</h3>
+                        <p>为数据中心UPS系统提供智能监控和管理，确保关键业务连续性，降低运营风险</p>
+                        <ul class="solution-features">
+                            <li>UPS健康监测</li>
+                            <li>故障预警系统</li>
+                            <li>备电时间优化</li>
+                        </ul>
+                    </div>
+                    <div class="solution-card">
+                        <div class="solution-icon">🚢</div>
+                        <h3>船舶海工</h3>
+                        <p>为船舶和海上工程设备的电池系统提供恶劣环境下的可靠监控和智能管理服务</p>
+                        <ul class="solution-features">
+                            <li>海洋环境适配</li>
+                            <li>远程监控管理</li>
+                            <li>安全风险控制</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于我们区域 -->
+        <section class="about" id="about">
+            <div class="about-container">
+                <div class="about-content">
+                    <div class="about-text">
+                        <h2 class="section-title">关于BatteryAI</h2>
+                        <p class="about-description">
+                            BatteryAI成立于2020年，是专注于智能电池管理技术的创新型企业。我们致力于通过人工智能和大数据技术，为各行业的电池系统提供智能化管理解决方案。
+                        </p>
+                        <div class="about-highlights">
+                            <div class="highlight-item">
+                                <h4>技术创新</h4>
+                                <p>拥有20+项核心技术专利，自主研发的AI算法在电池预测领域达到行业领先水平</p>
+                            </div>
+                            <div class="highlight-item">
+                                <h4>专业团队</h4>
+                                <p>汇聚来自清华、中科院等顶尖院校的技术专家，具备深厚的电池技术和AI算法经验</p>
+                            </div>
+                            <div class="highlight-item">
+                                <h4>行业认可</h4>
+                                <p>获得多轮知名投资机构投资，产品已在50+家企业成功应用，获得客户一致好评</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="about-image">
+                        <div class="team-placeholder">
+                            <div class="team-icon">👥</div>
+                            <p>专业团队</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系我们区域 -->
+        <section class="contact" id="contact">
+            <div class="contact-container">
+                <h2 class="section-title">联系我们</h2>
+                
+                <!-- 留言咨询区域 -->
+                <div class="contact-form-section">
+                    <div class="contact-form">
+                        <h3>留言咨询</h3>
+                        <p class="form-subtitle">告诉我们您的需求，我们将为您提供专业的解决方案</p>
+                        <form class="form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="text" placeholder="您的姓名" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="email" placeholder="邮箱地址" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="tel" placeholder="联系电话" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" placeholder="公司名称">
+                                </div>
+                            </div>
+                            <div class="form-group full-width">
+                                <textarea placeholder="请详细描述您的需求，包括应用场景、预期目标等..." rows="6" required></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary form-submit">
+                                <span>发送消息</span>
+                                <span class="btn-arrow">→</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 联系信息区域 -->
+                <div class="contact-info-section">
+                    <div class="contact-info-grid">
+                        <div class="contact-item">
+                            <div class="contact-icon">📍</div>
+                            <h4>公司地址</h4>
+                            <p>北京市海淀区中关村科技园<br>创新大厦A座15层</p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">📞</div>
+                            <h4>联系电话</h4>
+                            <p>400-888-6666<br>010-8888-8888</p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-icon">✉️</div>
+                            <h4>邮箱地址</h4>
+                            <p>info@batteryai.com<br>support@batteryai.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-links">
+                    <a href="#features">产品功能</a>
+                    <a href="#stats">数据报告</a>
+                    <a href="#">技术支持</a>
+                    <a href="#">新闻动态</a>
+                    <a href="#">合作伙伴</a>
+                    <a href="#">招聘信息</a>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 BatteryAI. 保留所有权利。</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 创建动态粒子效果
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // 滚动效果
+        function handleScroll() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 100) {
+                navbar.style.background = 'rgba(10, 14, 39, 0.95)';
+            } else {
+                navbar.style.background = 'rgba(10, 14, 39, 0.9)';
+            }
+        }
+
+        // 数字动画
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        const finalValue = target.textContent;
+                        let currentValue = 0;
+                        const increment = finalValue.includes('%') ? 1 : 
+                                        finalValue.includes('+') ? 1 : 1;
+                        const duration = 2000;
+                        const steps = duration / 16;
+                        const stepValue = parseInt(finalValue) / steps;
+
+                        const timer = setInterval(() => {
+                            currentValue += stepValue;
+                            if (currentValue >= parseInt(finalValue)) {
+                                currentValue = parseInt(finalValue);
+                                clearInterval(timer);
+                            }
+                            target.textContent = Math.floor(currentValue) + 
+                                               (finalValue.includes('%') ? '%' : 
+                                                finalValue.includes('+') ? '+' : '');
+                        }, 16);
+                    }
+                });
+            });
+
+            statNumbers.forEach(stat => observer.observe(stat));
+        }
+
+        // 卡片悬浮效果
+        function initCardEffects() {
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-15px) scale(1.02)';
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+
+        // 平滑滚动
+        function initSmoothScroll() {
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = document.querySelector(link.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        }
+
+        // 表单提交处理
+        function initFormHandler() {
+            const form = document.querySelector('.form');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    // 这里可以添加表单提交逻辑
+                    alert('感谢您的咨询！我们会尽快与您联系。');
+                    form.reset();
+                });
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            animateStats();
+            initCardEffects();
+            initSmoothScroll();
+            initFormHandler();
+            window.addEventListener('scroll', handleScroll);
+        });
+    </script>
+</body>
+</html>
